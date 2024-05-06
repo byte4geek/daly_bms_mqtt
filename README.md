@@ -11,9 +11,16 @@ In the .ini file you can configure all the parameters required by the script:
 - The mqtt broker user and password;
 - and soo on.
 
+
 To execute the script use:
+
 python3 daly-mqtt.py
 
+Requirements:
+
+- Python 3.11.2
+- pip3 install paho-mqtt==1.5.1
+- 
 Once the script is started it will send the mqtt discovery messages and home assistant will configure all the entities based on the names and icons present in the .ini file
 
 Note that when you make a change to the .ini file the script already running will send the updates to home assistant like the name or icon of the entity, or you can open or close the various sections of the logs:
