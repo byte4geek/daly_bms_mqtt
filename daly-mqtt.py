@@ -193,7 +193,7 @@ while True:
                                 if enable_logs_autodiscovery:
                                     logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
                                 if enable_logs_autodiscovery:
-                                    logger.info(f"Blocco 1 autodiscovery")
+                                    logger.info(f"Step 1 autodiscovery")
     						    
                                 client.publish(config_topic, json.dumps(config_payload))
                                 # add delay
@@ -254,7 +254,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Blocco errors 1 autodiscovery ")
+                            logger.info("Step errors 1 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -275,7 +275,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Blocco errors 2 autodiscovery ")
+                            logger.info("Step errors 2 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -296,7 +296,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Blocco errors 3 autodiscovery ")
+                            logger.info("Step errors 3 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -318,7 +318,7 @@ while True:
                 }
                 if enable_logs_autodiscovery:
                     logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                    logger.info("Blocco difference per autodiscovery ")
+                    logger.info("Step difference per autodiscovery ")
                 client.publish(config_topic, json.dumps(config_payload))
                 
                 # add delay
@@ -506,6 +506,3 @@ while True:
 
     # Wait befor run again
     time.sleep(sleep_time)
-
-
-
