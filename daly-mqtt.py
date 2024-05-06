@@ -426,7 +426,7 @@ while True:
                                 logger.info(f"Ignoring soc current reading as value {current} is out of range.")
                             continue
                             
-                     if key == "soc" and "capacity_ah" in value:
+                    if key == "soc" and "capacity_ah" in value:
                         capacity_ah = value["capacity_ah"]
                         if enable_logs_oofr_values:
                             logger.info(f"capacity_ah reading as value {capacity_ah}")
