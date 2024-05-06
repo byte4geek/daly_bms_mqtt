@@ -426,7 +426,7 @@ while True:
                                 logger.info(f"Ignoring soc current reading as value {current} is out of range.")
                             continue
                             
-                    if key == "soc" and "capacity_ah" in value:
+                    if key == "mosfet_status" and "capacity_ah" in value:
                         capacity_ah = value["capacity_ah"]
                         if enable_logs_oofr_values:
                             logger.info(f"capacity_ah reading as value {capacity_ah}")
@@ -443,7 +443,7 @@ while True:
                         # Check if the soc voltage value is outside the allowable range
                         if highest_temperature < 0 or highest_temperature > 60:
                             if enable_logs_oofr_values:
-                                logger.info(f"Ignoring soc current reading as value {highest_temperature} is out of range.")
+                                logger.info(f"Ignoring highest_temperature reading as value {highest_temperature} is out of range.")
                             continue
 
                     if key == "temperature_range" and "lowest_temperature" in value:
@@ -453,7 +453,7 @@ while True:
                         # Check if the soc voltage value is outside the allowable range
                         if lowest_temperature < 0 or lowest_temperature > 60:
                             if enable_logs_oofr_values:
-                                logger.info(f"Ignoring soc current reading as value {lowest_temperature} is out of range.")
+                                logger.info(f"Ignoring lowest_temperature reading as value {lowest_temperature} is out of range.")
                             continue
 # End value checking errors block
 
@@ -506,3 +506,6 @@ while True:
 
     # Wait befor run again
     time.sleep(sleep_time)
+
+
+
