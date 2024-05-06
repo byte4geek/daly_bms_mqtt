@@ -193,7 +193,7 @@ while True:
                                 if enable_logs_autodiscovery:
                                     logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
                                 if enable_logs_autodiscovery:
-                                    logger.info(f"Step 1 autodiscovery")
+                                    logger.info(f"Blocco 1 autodiscovery")
     						    
                                 client.publish(config_topic, json.dumps(config_payload))
                                 # add delay
@@ -254,7 +254,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 1 autodiscovery ")
+                            logger.info("Blocco errors 1 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -275,7 +275,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 2 autodiscovery ")
+                            logger.info("Blocco errors 2 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -296,7 +296,7 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 3 autodiscovery ")
+                            logger.info("Blocco errors 3 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
@@ -318,7 +318,7 @@ while True:
                 }
                 if enable_logs_autodiscovery:
                     logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                    logger.info("Step difference per autodiscovery ")
+                    logger.info("Blocco difference per autodiscovery ")
                 client.publish(config_topic, json.dumps(config_payload))
                 
                 # add delay
@@ -413,7 +413,7 @@ while True:
                         # Check if the soc voltage value is outside the allowable range
                         if total_voltage < 48 or total_voltage > 60:
                             if enable_logs_oofr_values:
-                                logger.info(f"Ignoring soc voltage reading as value {total_voltage} is out of range.")
+                                logger.info(f"Ignoring total_voltage reading as value {total_voltage} is out of range.")
                             continue
 
                     if key == "soc" and "current" in value:
@@ -424,6 +424,16 @@ while True:
                         if current < -180 or current > 180:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring soc current reading as value {current} is out of range.")
+                            continue
+                            
+                     if key == "soc" and "capacity_ah" in value:
+                        capacity_ah = value["capacity_ah"]
+                        if enable_logs_oofr_values:
+                            logger.info(f"capacity_ah reading as value {capacity_ah}")
+                        # Check if the capacity_ah value is outside the allowable range
+                        if capacity_ah < 0 or capacity_ah > 300:
+                            if enable_logs_oofr_values:
+                                logger.info(f"Ignoring capacity_ah reading as value {capacity_ah} is out of range.")
                             continue
 
                     if key == "temperature_range" and "highest_temperature" in value:
@@ -496,5 +506,6 @@ while True:
 
     # Wait befor run again
     time.sleep(sleep_time)
+
 
 
