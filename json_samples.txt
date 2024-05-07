@@ -1,0 +1,125 @@
+root@dockers-deb12:~/mqtt-daly-bms# /usr/bin/python3 /usr/local/bin/daly-bms-cli -d /dev/ttyUSB0 --all
+{
+  "soc": {
+    "total_voltage": 53.0,
+    "current": -26.2,
+    "soc_percent": 81.4
+  },
+  "cell_voltage_range": {
+    "highest_voltage": 3.32,
+    "highest_cell": 3,
+    "lowest_voltage": 3.303,
+    "lowest_cell": 9
+  },
+  "temperature_range": {
+    "highest_temperature": 26,
+    "highest_sensor": 1,
+    "lowest_temperature": 26,
+    "lowest_sensor": 1
+  },
+  "mosfet_status": {
+    "mode": "discharging",
+    "charging_mosfet": true,
+    "discharging_mosfet": true,
+    "capacity_ah": 227.92
+  },
+  "status": {
+    "cells": 16,
+    "temperature_sensors": 2,
+    "charger_running": true,
+    "load_running": false,
+    "states": {
+      "DI1": false
+    },
+    "cycles": 1
+  },
+  "cell_voltages": {
+    "1": 3.318,
+    "2": 3.313,
+    "3": 3.32,
+    "4": 3.314,
+    "5": 3.32,
+    "6": 3.315,
+    "7": 3.32,
+    "8": 3.315,
+    "9": 3.303,
+    "10": 3.314,
+    "11": 3.32,
+    "12": 3.314,
+    "13": 3.32,
+    "14": 3.314,
+    "15": 3.32,
+    "16": 3.314
+  },
+  "temperatures": {
+    "1": 26,
+    "2": 26
+  },
+  "balancing_status": {
+    "error": "not implemented"
+  },
+  "errors": []
+}
+
+root@dockers-deb12:~/mqtt-daly-bms# /usr/bin/python3 /usr/local/bin/daly-bms-cli -d /dev/ttyUSB0 --all
+{
+  "soc": {
+    "total_voltage": 52.8,
+    "current": 27.7,
+    "soc_percent": 49.0
+  },
+  "cell_voltage_range": {
+    "highest_voltage": 3.305,
+    "highest_cell": 9,
+    "lowest_voltage": 3.299,
+    "lowest_cell": 1
+  },
+  "temperature_range": {
+    "highest_temperature": 24,
+    "highest_sensor": 2,
+    "lowest_temperature": 23,
+    "lowest_sensor": 1
+  },
+  "mosfet_status": {
+    "mode": "charging",
+    "charging_mosfet": true,
+    "discharging_mosfet": true,
+    "capacity_ah": 137.2
+  },
+  "status": {
+    "cells": 16,
+    "temperature_sensors": 2,
+    "charger_running": true,
+    "load_running": false,
+    "states": {
+      "DI1": false
+    },
+    "cycles": 1
+  },
+  "cell_voltages": {
+    "1": 3.301,
+    "2": 3.301,
+    "3": 3.303,
+    "4": 3.301,
+    "5": 3.302,
+    "6": 3.302,
+    "7": 3.304,
+    "8": 3.301,
+    "9": 3.311,
+    "10": 3.302,
+    "11": 3.304,
+    "12": 3.302,
+    "13": 3.304,
+    "14": 3.302,
+    "15": 3.304,
+    "16": 3.3
+  },
+  "temperatures": {
+    "1": 23,
+    "2": 24
+  },
+  "balancing_status": {
+    "error": "not implemented"
+  },
+  "errors": []
+}
