@@ -20,6 +20,13 @@ broker_address = config['mqtt']['broker_address']
 ttyUSB0_device = config['mqtt']['ttyUSB0_device']
 sleep_time = int(config['mqtt']['sleep_time'])
 autodiscovery = config.getboolean('mqtt', 'autodiscovery')
+
+# Battery values
+battery_capacity = int(config['battery_conf']['battery_capacity'])
+max_charging_amp = int(config['battery_conf']['max_charging_amp'])
+max_dicharging_amp = int(config['battery_conf']['max_dicharging_amp'])
+max_difference = int(config['battery_conf']['max_difference'])
+
 # Logs
 log_rotation_size_mb = int(config['logs']['log_rotation_size_mb'])
 log_rotation_count = int(config['logs']['log_rotation_count'])
@@ -100,9 +107,15 @@ additional_unit_map = {
     "lowest_temperature": "°C",
     "capacity_ah": "Ah",
 }
+
+last_valid_cell_voltages = None
+last_valid_soc_percent = None
+
 while True:
     try:
-
+        logger.info("")
+        logger.info("********** Starting ************")
+        logger.info("")
         # Check if the .ini file was modifiedè stato modificato
         current_modified_time = os.path.getmtime('daly-mqtt-config.ini')
         if current_modified_time != last_modified_time:
@@ -122,6 +135,13 @@ while True:
             ttyUSB0_device = config['mqtt']['ttyUSB0_device']
             sleep_time = int(config['mqtt']['sleep_time'])
             autodiscovery = config.getboolean('mqtt', 'autodiscovery')
+            
+            # Battery values
+            battery_capacity = int(config['battery_conf']['battery_capacity'])
+            max_charging_amp = int(config['battery_conf']['max_charging_amp'])
+            max_dicharging_amp = int(config['battery_conf']['max_dicharging_amp'])
+            max_difference = int(config['battery_conf']['max_difference'])
+            
             # logs
             log_rotation_size_mb = int(config['logs']['log_rotation_size_mb'])
             log_rotation_count = int(config['logs']['log_rotation_count'])
@@ -239,7 +259,29 @@ while True:
     							
                     # Managing errors sensors
                     if (key == "errors"):
-                        # Managing sensor errors 1
+                        
+                        # Managing sensor error 0
+                        #  Send MQTT discovery message for Home Assistant as text sensor
+                        config_topic = f"homeassistant/sensor/daly_bms/errors_0/config"
+                        name_key = f"{key}-0_name"  # Build name key
+                        icon_key = f"{key}-0_icon"  # Build icon key
+                        name = config.get('customizations', name_key, fallback=f"daly_bms_{key}_0")  # Get name from .ini file
+                        icon = config.get('customizations', icon_key, fallback='')  # Get icon from .ini file
+                        config_payload = {
+                            "name": name,
+                            "state_topic": f"daly_bms/{key}_0",
+                            "value_template": "{{ value }}",
+                            "icon": icon
+                        }
+                        if enable_logs_autodiscovery:
+                            logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
+                            logger.info("Step error 0 autodiscovery ")
+                        client.publish(config_topic, json.dumps(config_payload))
+                        
+                        # Aggiungi un ritardo
+                        time.sleep(0.05)
+                        
+                        # Managing sensor error 1
                         # Send MQTT discovery message for Home Assistant as text sensor
                         config_topic = f"homeassistant/sensor/daly_bms/errors_1/config"
                         name_key = f"{key}-1_name"  # Build name key
@@ -254,13 +296,13 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 1 autodiscovery ")
+                            logger.info("Step error 1 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
                         time.sleep(0.05)
                     
-                        # Managing sensor  errors 2
+                        # Managing sensor  error 2
                         #  Send MQTT discovery message for Home Assistant as text sensor
                         config_topic = f"homeassistant/sensor/daly_bms/errors_2/config"
                         name_key = f"{key}-2_name"  # Build name key
@@ -275,13 +317,13 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 2 autodiscovery ")
+                            logger.info("Step error 2 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
                         time.sleep(0.05)
 
-                        # Managing sensor errors 3
+                        # Managing sensor error 3
                         #  Send MQTT discovery message for Home Assistant as text sensor
                         config_topic = f"homeassistant/sensor/daly_bms/errors_3/config"
                         name_key = f"{key}-3_name"  # Build name key
@@ -296,12 +338,13 @@ while True:
                         }
                         if enable_logs_autodiscovery:
                             logger.info(f"Publishing config for {config_topic} with payload {config_payload}")
-                            logger.info("Step errors 3 autodiscovery ")
+                            logger.info("Step error 3 autodiscovery ")
                         client.publish(config_topic, json.dumps(config_payload))
                         
                         # Aggiungi un ritardo
                         time.sleep(0.05)
-                        
+                       
+                       
                 # Managing sensor Difference
                 # Send MQTT discovery message for Home Assistant
                 config_topic = f"homeassistant/sensor/daly_bms/difference/config"
@@ -359,97 +402,122 @@ while True:
 
 # Start values errors checking block
                     if key == "cell_voltages":
-                        # Check if at least one of the cell values ​​is outside the allowed range
+                        # Check if at least one of the cell values is outside the allowed range
                         out_of_range = any(subvalue <= 2 or subvalue > 3.7 for subvalue in value.values())
                         if out_of_range:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring cell {subkey} voltages readings as value {value} is out of range (0V - 3.7V).")
                             continue
-                        # Calculating differnce beetween highest_voltage and lowest_voltage
-                        highest_voltage = max(value.values())
-                        lowest_voltage = min(value.values())
-                        voltage_difference = int((highest_voltage - lowest_voltage) * 1000)
-                        if enable_logs:
-                            logger.info(f"Cell_voltage different {voltage_difference}")
-                            
-                        client.publish("daly_bms/difference", str(voltage_difference))
-                        if enable_logs_mqqt_value:
-                            logger.info(f"Public entity daly_bms/difference with value {voltage_difference}")    
                         
-                    if key == "soc" and "soc_percent" in value:
-                        soc_percent = value["soc_percent"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"SOC percent reading as value {soc_percent}")
-                        # Check if the value of soc_percent is outside the allowed range
-                        if soc_percent < 0 or soc_percent > 100:
-                            if enable_logs_oofr_values:
-                                logger.info(f"Ignoring SOC percent reading as value {soc_percent} is out of range (0% - 100%).")
-                            continue
+                        if last_valid_cell_voltages is not None:
+                            # Check if new values exceed ±10 from last valid values
+                            if enable_logs:
+                                logger.info(f"Last valid cell voltages    {last_valid_cell_voltages}")
+                                logger.info(f"Current valid cell voltages {value}")
+                                logger.info("Calculating cells exceed range")
+                            exceed_range = any(abs(subvalue - last_valid_cell_voltages[subkey]) > 0.03 for subkey, subvalue in value.items())
+                            if exceed_range:
+                                if enable_logs_oofr_values:
+                                    logger.info(f"Ignoring cell {subkey} voltages readings as value {subvalue} exceed ±30% with exceed range from last valid values {last_valid_cell_voltages}.")
+                                continue
+                            if enable_logs:
+                                logger.info("No cells exceed range present")
+                        # Update last valid cell voltages
+                        last_valid_cell_voltages = {subkey: subvalue for subkey, subvalue in value.items()}
 
-                    if key == "cell_voltage_range" and "highest_voltage" in value:
+                    # Check highest_voltage and lowest_voltage range + calcultanig difference
+                    if (key == "cell_voltage_range" and "highest_voltage") and (key == "cell_voltage_range" and "lowest_voltage") in value:
                         highest_voltage = value["highest_voltage"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"highest_voltage reading as value {highest_voltage}")
+                        lowest_voltage = value["lowest_voltage"]
+                        if enable_logs:
+                            logger.info(f"highest_voltage reading as value:     {highest_voltage}")
+                            logger.info(f"lowest voltage reading as value:      {lowest_voltage}")
                         #  Check if the highest_voltage value is outside the allowed range (2 - 3.7)
                         if highest_voltage < 2 or highest_voltage > 3.7:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring higest voltage reading as value {highest_voltage} is out of range (2 - 3.7).")
                             continue
-
-                    if key == "cell_voltage_range" and "lowest_voltage" in value:
-                        lowest_voltage = value["lowest_voltage"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"lowest voltage reading as value {lowest_voltage}")
-                        # Check if the value of lowest_voltage is outside the allowed range (2 - 3.7)
                         if lowest_voltage < 2 or lowest_voltage > 3.7:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring lowest voltage reading as value {lowest_voltage} is out of range (2 - 3.7).")
                             continue
+                        # Calculating differnce beetween highest_voltage and lowest_voltage
+                        logger.info(f"Hv: {highest_voltage} Lv: {lowest_voltage}")
+                        voltage_difference = int((highest_voltage - lowest_voltage) * 1000)
+                        if enable_logs:
+                            logger.info(f"Cell_voltage difference:              {voltage_difference}")
+                            logger.info(f"Max voltage difference is:            {max_difference}")
+                        if voltage_difference < 0 or voltage_difference > max_difference:
+                            if enable_logs_oofr_values:
+                                logger.info(f"Ignoring voltage_difference readings as values {voltage_difference} is out of range (0 - {max_difference}.")
+                            continue
+                        # Publish voltage difference
+                        client.publish("daly_bms/difference", str(voltage_difference))
+                        if enable_logs_mqqt_value:
+                            logger.info(f"Publishing entity daly_bms/difference with value {voltage_difference}")
+#                        # Update last valid voltage difference
+#                        last_valid_voltage_difference = voltage_difference
+#                        if last_valid_voltage_difference == 0:
+#                            last_valid_voltage_difference = None
 
-                    if key == "soc" and "total_voltage" in value:
+                    if (key == "soc" and "soc_percent") and (key == "soc" and "total_voltage") and (key == "soc" and "current") in value:
+                        soc_percent = value["soc_percent"]
                         total_voltage = value["total_voltage"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"soc total_voltage reading as value {total_voltage}")
+                        current = value["current"]
+                        if enable_logs:
+                            logger.info(f"SOC percent reading as value:         {soc_percent}")
+                            logger.info(f"SOC total_voltage reading as value:   {total_voltage}")
+                            logger.info(f"SOC current reading as value:         {current}")
+                            logger.info(f"Max charging current is:              {max_charging_amp}")
+                            logger.info(f"Max discharging current is:           {max_dicharging_amp}")
+                        # Check if the value of soc_percent is outside the allowed range
+                        if soc_percent < 1 or soc_percent > 100:
+                            if enable_logs_oofr_values:
+                                logger.info(f"Ignoring SOC percent reading as value {soc_percent} is out of range (0% - 100%).")
+                            continue
+                        if last_valid_soc_percent is not None:
+                            soc_range_threshold = last_valid_soc_percent * 0.1
+                            if enable_logs:
+                                logger.info(f"soc_percent range threshold:          {soc_range_threshold}")
+                            if soc_percent > last_valid_soc_percent + soc_range_threshold or soc_percent < last_valid_soc_percent - soc_range_threshold:
+                                if enable_logs_oofr_values:
+                                    logger.info(f"Ignoring soc percent readings as value {soc_percent} exceeds ±10% range from last valid value {last_valid_soc_percent}.")
+                                continue
+                        last_valid_soc_percent = soc_percent
+                            
                         # Check if the soc voltage value is outside the allowable range
                         if total_voltage < 48 or total_voltage > 60:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring total_voltage reading as value {total_voltage} is out of range.")
                             continue
-
-                    if key == "soc" and "current" in value:
-                        current = value["current"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"soc current reading as value {current}")
-                        # Check if the soc voltage value is outside the allowable range
-                        if current < -180 or current > 180:
+                        # Check if the current value is outside the allowable range
+                        if current < max_dicharging_amp or current > max_charging_amp:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring soc current reading as value {current} is out of range.")
                             continue
                             
                     if key == "mosfet_status" and "capacity_ah" in value:
                         capacity_ah = value["capacity_ah"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"capacity_ah reading as value {capacity_ah}")
+                        if enable_logs:
+                            logger.info(f"capacity_ah reading as value:         {capacity_ah}")
+                            logger.info(f"Battery capacity setting is:          {battery_capacity}")
                         # Check if the capacity_ah value is outside the allowable range
-                        if capacity_ah < 0 or capacity_ah > 300:
+                        if capacity_ah < 0 or capacity_ah > battery_capacity:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring capacity_ah reading as value {capacity_ah} is out of range.")
                             continue
 
-                    if key == "temperature_range" and "highest_temperature" in value:
+                    if (key == "temperature_range" and "highest_temperature") and (key == "temperature_range" and "lowest_temperature") in value:
                         highest_temperature = value["highest_temperature"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"highest_temperature reading as value {highest_temperature}")
+                        lowest_temperature = value["lowest_temperature"]
+                        if enable_logs:
+                            logger.info(f"highest_temperature reading as value: {highest_temperature}")
+                            logger.info(f"lowest_temperature reading as value:  {lowest_temperature}")
                         # Check if the soc voltage value is outside the allowable range
                         if highest_temperature < 0 or highest_temperature > 60:
                             if enable_logs_oofr_values:
                                 logger.info(f"Ignoring highest_temperature reading as value {highest_temperature} is out of range.")
                             continue
-
-                    if key == "temperature_range" and "lowest_temperature" in value:
-                        lowest_temperature = value["lowest_temperature"]
-                        if enable_logs_oofr_values:
-                            logger.info(f"lowest_temperature reading as value {lowest_temperature}")
                         # Check if the soc voltage value is outside the allowable range
                         if lowest_temperature < 0 or lowest_temperature > 60:
                             if enable_logs_oofr_values:
@@ -473,6 +541,7 @@ while True:
                         if enable_logs:
                             logger.info("No errors to publish then send None to the sensors")
                         # Public "None"
+                        client.publish("daly_bms/errors_0", "None")
                         client.publish("daly_bms/errors_1", "None")
                         client.publish("daly_bms/errors_2", "None")
                         client.publish("daly_bms/errors_3", "None")
@@ -500,12 +569,8 @@ while True:
         if enable_logs:
             logger.error(f"Error during script execution: {e}")
         pass
-
     # Client disconnec
     client.disconnect()
 
     # Wait befor run again
     time.sleep(sleep_time)
-
-
-
