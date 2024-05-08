@@ -113,10 +113,11 @@ last_valid_soc_percent = None
 
 while True:
     try:
-        logger.info("")
-        logger.info("********** Starting ************")
-        logger.info("")
-        # Check if the .ini file was modifiedè stato modificato
+        if enable_logs or enable_logs_mqtt or enable_logs_oofr_values or enable_logs_autodiscovery or enable_logs_mqqt_value:
+            logger.info("")
+            logger.info("********** Starting ************")
+            logger.info("")
+        # Check if the .ini file was modified
         current_modified_time = os.path.getmtime('daly-mqtt-config.ini')
         if current_modified_time != last_modified_time:
             # timestamp update
@@ -442,7 +443,8 @@ while True:
                                 logger.info(f"Ignoring lowest voltage reading as value {lowest_voltage} is out of range (2 - 3.7).")
                             continue
                         # Calculating differnce beetween highest_voltage and lowest_voltage
-                        logger.info(f"Hv: {highest_voltage} Lv: {lowest_voltage}")
+                        if enable_logs:    
+                            logger.info(f"Hv: {highest_voltage} Lv: {lowest_voltage}")
                         voltage_difference = int((highest_voltage - lowest_voltage) * 1000)
                         if enable_logs:
                             logger.info(f"Cell_voltage difference:              {voltage_difference}")
